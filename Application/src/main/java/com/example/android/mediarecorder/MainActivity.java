@@ -24,10 +24,12 @@ import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
+import android.opengl.GLES20;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.TextureView;
 import android.view.View;
@@ -55,6 +57,8 @@ public class MainActivity extends Activity {
     private boolean isRecording = false;
     private static final String TAG = "Recorder";
     private Button captureButton;
+    private int frameCount = 0;
+    private long timestamp0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,14 +101,14 @@ public class MainActivity extends Activity {
             releaseCamera();
             // END_INCLUDE(stop_release_media_recorder)
 
-            File yamlFile = createYAML();
+            /*File yamlFile = createYAML();
 
             if(yamlFile != null) {
                 Toast.makeText(this, "writing to yaml file", Toast.LENGTH_SHORT).show();
                 WriteBrightnessToYAML(yamlFile.getAbsolutePath());
             }
 
-            MediaScan ms = new MediaScan(this, yamlFile);
+            MediaScan ms = new MediaScan(this, yamlFile);*/
 
         } else {
 
@@ -117,6 +121,7 @@ public class MainActivity extends Activity {
         }
     }
 
+    @Nullable
     public static File createYAML(){
 
         if (!Environment.getExternalStorageState().equalsIgnoreCase(Environment.MEDIA_MOUNTED)) {
@@ -237,6 +242,14 @@ public class MainActivity extends Activity {
             return false;
         }
         mMediaRecorder.setOutputFile(mOutputFile.getPath());
+
+        //Call init in jni
+        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES), "CameraSample");
+
+        callInit(optimalSize.height, optimalSize.width, 10.f, 0.0f, mediaStorageDir.getPath() + File.separator +
+                "Brightness_"+ CameraHelper.dateTimeStamp + ".yaml");
+
         // END_INCLUDE (configure_media_recorder)
 
         // Step 5: Prepare configured MediaRecorder
@@ -278,10 +291,23 @@ public class MainActivity extends Activity {
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surface) {
 
+            long timestampNS = surface.getTimestamp(); //in nanoseconds
+
+            double timestampMS;
+
+            if(frameCount == 0) {
+                timestamp0 = timestampNS;
+                timestampMS = 0;
+            }
+            else
+                timestampMS = (double)(timestampNS-timestamp0)*10e-6; //in miliseconds
+
+            Log.i(TAG, "timestamp in ms: " + timestampMS);
+
             Bitmap bmp = mPreview.getBitmap();
 
             if (isRecording)
-                computeBrightness(bmp);
+                computeBrightness(bmp, timestampMS);
 
         }
     };
@@ -321,10 +347,13 @@ public class MainActivity extends Activity {
     }
 
     @SuppressWarnings("JniMissingFunction")
-    public native Bitmap computeBrightness(Bitmap bitmap);
+    public native Bitmap computeBrightness(Bitmap bitmap, double timestamp);
 
     @SuppressWarnings("JniMissingFunction")
     public native void WriteBrightnessToYAML(String filePath);
+
+    @SuppressWarnings("JniMissingFunction")
+    public native void callInit(int h, int w, float fps, float windowSizeInSec, String str);
 
     static {
         System.loadLibrary("opencv_java");

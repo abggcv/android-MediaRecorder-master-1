@@ -5,7 +5,7 @@ OPENCV_INSTALL_MODULES:=on
 include sdk/native/jni/OpenCV.mk
 
 LOCAL_MODULE    := Scanner
-LOCAL_SRC_FILES := scan.cpp
+LOCAL_SRC_FILES := scan.cpp feature.cpp projections.cpp
 LOCAL_LDLIBS    += -lm -llog -landroid
 LOCAL_LDFLAGS += -ljnigraphics
 LOCAL_C_INCLUDES += $(LOCAL_PATH)

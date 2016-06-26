@@ -3,6 +3,10 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+
+#include<feature.hpp>
+#include<projections.hpp>
+
 using namespace std;
 
 /* Header for class com_example_android_mediarecorder_MainActivity */
@@ -69,14 +73,20 @@ extern "C" {
  */
 
  vector<double> brightnessValues;
- int ind = 0;
+ vector<Point> framesTimestamps;
+ int frameCount = 0;
+ string yamlFileName;
+
+ Feature feat;
 
 JNIEXPORT jobject JNICALL Java_com_example_android_mediarecorder_MainActivity_computeBrightness
-  (JNIEnv *, jobject, jobject);
+  (JNIEnv *, jobject, jobject, jdouble);
 
 JNIEXPORT void JNICALL Java_com_example_android_mediarecorder_MainActivity_WriteBrightnessToYAML
-  (JNIEnv* env, jobject thiz, jstring jFilePath);
+  (JNIEnv*, jobject, jstring);
 
+JNIEXPORT jobject JNICALL Java_com_example_android_mediarecorder_MainActivity_callInit(JNIEnv *env, jobject thiz, jint width,
+                                                                                jint, jfloat, jfloat, jstring);
 
 
 #ifdef __cplusplus

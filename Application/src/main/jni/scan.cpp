@@ -71,7 +71,8 @@ jobject mat_to_bitmap(JNIEnv * env, Mat & src, bool needPremultiplyAlpha, jobjec
     }
 }
 
-JNIEXPORT jobject JNICALL Java_com_example_android_mediarecorder_MainActivity_computeBrightness(JNIEnv *env, jobject thiz, jobject bitmap)
+JNIEXPORT jobject JNICALL Java_com_example_android_mediarecorder_MainActivity_computeBrightness(JNIEnv *env, jobject thiz,
+                                                                                                jobject bitmap, jdouble timestamp)
 {
     //__android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "Scaning getString");
     int ret;
@@ -102,9 +103,9 @@ JNIEXPORT jobject JNICALL Java_com_example_android_mediarecorder_MainActivity_co
 
     brightnessValues.push_back(meanPxl.val[1]);
 
-    LOGI("Brightness value for frame: %d", ind);
+    LOGI("Brightness value for frame: %d", frameCount);
     LOGI("Image brightness: %f", meanPxl.val[1]);
-    LOGI("brightness value from vector: %f", brightnessValues[ind]);
+    LOGI("brightness value from vector: %f", brightnessValues[frameCount]);
 
     __android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "Image brightness: %f", meanPxl.val[1]);
 
@@ -114,7 +115,27 @@ JNIEXPORT jobject JNICALL Java_com_example_android_mediarecorder_MainActivity_co
     jobject bitmap_config = env->CallObjectMethod(bitmap, mid);
     jobject _bitmap = mat_to_bitmap(env,mbgra,false,bitmap_config);
 
-    ind++;
+    Mat gray(info.height, info.width, CV_8UC1);
+    cvtColor(mbgra, gray, CV_BGRA2GRAY);
+    feat.provideFrame(gray, timestamp);
+
+    framesTimestamps.push_back(Point(frameCount, timestamp));
+
+    frameCount++;
+
+    if(frameCount == 20)
+    {
+        if(!yamlFileName.empty())
+        {
+            //const char* fnameptr = env->SetStringUTFChars
+            const char * yamlfilenameptr = yamlFileName.c_str();
+            LOGD("Writing to yamlfile: %s", yamlfilenameptr);
+
+            feat.WriteToFile(yamlFileName, framesTimestamps);
+        }
+        else
+            LOGD("YAML Filename empty string");
+    }
 
     AndroidBitmap_unlockPixels(env, bitmap);
     return _bitmap;
@@ -123,7 +144,8 @@ JNIEXPORT jobject JNICALL Java_com_example_android_mediarecorder_MainActivity_co
 
 //function to write brightness values to yaml file --- input required jFilePath is String containing path to yaml file including
 // name of file and extension .yaml where yaml file can be written
-JNIEXPORT void JNICALL Java_com_example_android_mediarecorder_MainActivity_WriteBrightnessToYAML(JNIEnv* env, jobject thiz, jstring jFilePath)
+JNIEXPORT void JNICALL Java_com_example_android_mediarecorder_MainActivity_WriteBrightnessToYAML(JNIEnv* env, jobject thiz,
+                                                                                                 jstring jFilePath)
 {
         //filename to save to
         const char *fnameptr = env->GetStringUTFChars(jFilePath, NULL);
@@ -145,7 +167,28 @@ JNIEXPORT void JNICALL Java_com_example_android_mediarecorder_MainActivity_Write
 
         //empty brightness values
         brightnessValues.clear();
-        ind = 0;
+        frameCount = 0;
         //release char pointer
         env->ReleaseStringUTFChars(jFilePath, fnameptr);
+}
+
+
+JNIEXPORT jobject JNICALL Java_com_example_android_mediarecorder_MainActivity_callInit(JNIEnv *env, jobject thiz, jint width,
+                                                                                jint height, jfloat fps, jfloat windowSizeInSec,
+                                                                                jstring jFilePath)
+{
+       LOGI("features init called");
+       //call init
+       feat.init(height, width, fps, windowSizeInSec);
+
+       //filename to save to
+       const char *fnameptr = env->GetStringUTFChars(jFilePath, NULL);
+
+       string fileName(fnameptr);
+
+       yamlFileName = fileName;
+
+       LOGI("yaml file name set to: %s", fnameptr);
+
+
 }
