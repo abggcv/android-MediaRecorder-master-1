@@ -36,8 +36,9 @@ void Feature::WriteToFile(std::string fileName)
     
     cv::Mat temp = cv::Mat::zeros(640,360, CV_8UC1);
 
+
+    fs << "temp" << temp;
     /*
-    //fs << "temp" << temp;
     fs << "frameCountTimestamps" << "["; //frameCountTimestamps;
 
     for(int i = 0; i < frameCountTimestamps.size(); i++)
