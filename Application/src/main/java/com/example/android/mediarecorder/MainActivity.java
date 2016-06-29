@@ -37,6 +37,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.android.common.media.CameraHelper;
+import com.example.android.common.media.KibaFileManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,13 +53,16 @@ public class MainActivity extends Activity {
     private Camera mCamera;
     private TextureView mPreview;
     private MediaRecorder mMediaRecorder;
-    private File mOutputFile;
+    private File[] mOutputFiles;
 
     private boolean isRecording = false;
     private static final String TAG = "Recorder";
     private Button captureButton;
     private int frameCount = 0;
     private long timestamp0;
+    private static float SEGMENTWINDOWSIZEINSEC = 4.0f;
+    private static int mProcessingWidth = 1280;
+    private static int mProcessingHeight = 720;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,8 +94,10 @@ public class MainActivity extends Activity {
                 // In this case the output file is not properly constructed ans should be deleted.
                 Log.d(TAG, "RuntimeException: stop() is called immediately after start()");
                 //noinspection ResultOfMethodCallIgnored
-                mOutputFile.delete();
+                mOutputFiles[0].delete();
+                mOutputFiles[1].delete();
             }
+            writeOutYAMLAndDeinit();
             releaseMediaRecorder(); // release the MediaRecorder object
             mCamera.lock();         // take camera access back from MediaRecorder
 
@@ -119,33 +125,6 @@ public class MainActivity extends Activity {
             // END_INCLUDE(prepare_start_media_recorder)
 
         }
-    }
-
-    @Nullable
-    public static File createYAML(){
-
-        if (!Environment.getExternalStorageState().equalsIgnoreCase(Environment.MEDIA_MOUNTED)) {
-            return  null;
-        }
-
-        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES), "CameraSample");
-        // This location works best if you want the created images to be shared
-        // between applications and persist after your app has been uninstalled.
-
-        // Create the storage directory if it does not exist
-        if (! mediaStorageDir.exists()){
-            if (! mediaStorageDir.mkdirs()) {
-                Log.d("CameraSample", "failed to create directory");
-                return null;
-            }
-        }
-
-        // Create a yaml file name
-        File yamlFile = new File(mediaStorageDir.getPath() + File.separator +
-                "Brightness_"+ CameraHelper.dateTimeStamp + ".yaml");
-
-        return yamlFile;
     }
 
     public void onListClick(View view){
@@ -237,18 +216,19 @@ public class MainActivity extends Activity {
         mMediaRecorder.setProfile(profile);
 
         // Step 4: Set output file
-        mOutputFile = CameraHelper.getOutputMediaFile(CameraHelper.MEDIA_TYPE_VIDEO);
-        if (mOutputFile == null) {
+        mOutputFiles = KibaFileManager.getNewRecordingMediaFileNames();
+        if (mOutputFiles[0] == null || mOutputFiles[1] == null) {
             return false;
         }
-        mMediaRecorder.setOutputFile(mOutputFile.getPath());
+        mMediaRecorder.setOutputFile(mOutputFiles[0].getPath());
 
         //Call init in jni
         File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES), "CameraSample");
 
-        callInit(optimalSize.height, optimalSize.width, 10.f, 0.0f, mediaStorageDir.getPath() + File.separator +
-                "Brightness_"+ CameraHelper.dateTimeStamp + ".yaml");
+        mProcessingWidth = optimalSize.width;
+        mProcessingHeight = optimalSize.height;
+        callInit(optimalSize.width, optimalSize.height, 0.0f, SEGMENTWINDOWSIZEINSEC, mOutputFiles[1].getAbsolutePath());
 
         // END_INCLUDE (configure_media_recorder)
 
@@ -304,10 +284,10 @@ public class MainActivity extends Activity {
 
             Log.i(TAG, "timestamp in ms: " + timestampMS);
 
-            Bitmap bmp = mPreview.getBitmap();
+            Bitmap bmp = mPreview.getBitmap(mProcessingWidth, mProcessingHeight);
 
             if (isRecording)
-                computeBrightness(bmp, timestampMS);
+                provideFrame(bmp, timestampMS);
 
         }
     };
@@ -346,14 +326,13 @@ public class MainActivity extends Activity {
         }
     }
 
-    @SuppressWarnings("JniMissingFunction")
-    public native Bitmap computeBrightness(Bitmap bitmap, double timestamp);
+    //@SuppressWarnings("JniMissingFunction")
+    //public native Bitmap computeBrightness(Bitmap bitmap, double timestamp);
+    //public static native void WriteBrightnessToYAML(String filePath);
 
-    @SuppressWarnings("JniMissingFunction")
-    public native void WriteBrightnessToYAML(String filePath);
-
-    @SuppressWarnings("JniMissingFunction")
-    public native void callInit(int h, int w, float fps, float windowSizeInSec, String str);
+    public static native void callInit(int width, int height, float fps, float windowSizeInSec, String yamlPath);
+    public static native void provideFrame(Bitmap bitmap, double timestamp);
+    public static native void writeOutYAMLAndDeinit();
 
     static {
         System.loadLibrary("opencv_java3");

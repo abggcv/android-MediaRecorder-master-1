@@ -72,21 +72,20 @@ extern "C" {
  * Signature: (IILandroid/graphics/Bitmap;FFFFFFFF)Landroid/graphics/Bitmap;
  */
 
- vector<double> brightnessValues;
- vector<Point> framesTimestamps;
- int frameCount = 0;
- string yamlFileName;
 
- Feature feat;
+JNIEXPORT void JNICALL Java_com_example_android_mediarecorder_MainActivity_callInit(JNIEnv *env, jobject thiz, jint width,
+                                                                                       jint height, jfloat, jfloat, jstring);
+
+JNIEXPORT void JNICALL Java_com_example_android_mediarecorder_MainActivity_provideFrame(JNIEnv *, jobject, jobject, jdouble);
+
+JNIEXPORT void JNICALL Java_com_example_android_mediarecorder_MainActivity_writeOutYAMLAndDeinit(JNIEnv *env, jobject thiz);
+
 
 JNIEXPORT jobject JNICALL Java_com_example_android_mediarecorder_MainActivity_computeBrightness
   (JNIEnv *, jobject, jobject, jdouble);
 
-JNIEXPORT void JNICALL Java_com_example_android_mediarecorder_MainActivity_WriteBrightnessToYAML
-  (JNIEnv*, jobject, jstring);
-
-JNIEXPORT jobject JNICALL Java_com_example_android_mediarecorder_MainActivity_callInit(JNIEnv *env, jobject thiz, jint width,
-                                                                                jint, jfloat, jfloat, jstring);
+JNIEXPORT void JNICALL Java_com_example_android_mediarecorder_MainActivity_WriteBrightnessToYAML(JNIEnv* env, jobject thiz,
+                                                                                                 jstring jFilePath);
 
 
 #ifdef __cplusplus

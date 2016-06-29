@@ -89,8 +89,8 @@ android {
     }
 
     task ndkBuild(type: Exec) {
-        commandLine 'C:\\Users\\abgg\\AppData\\Local\\Android\\sdk\\ndk-bundle\\ndk-build.cmd', '-C', file('src/main/jni').absolutePath
-        //commandLine '/opt/android/android-ndk-r12/ndk-build', '-C', file('src/main/jni').absolutePath
+        //commandLine 'C:\\Users\\abgg\\AppData\\Local\\Android\\sdk\\ndk-bundle\\ndk-build.cmd', '-C', file('src/main/jni').absolutePath
+        commandLine '/opt/android/android-ndk-r12/ndk-build', '-C', file('src/main/jni').absolutePath
     }
 
     tasks.withType(JavaCompile) {
