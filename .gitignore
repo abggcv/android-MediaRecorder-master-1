@@ -1,80 +1,83 @@
-# Created by .ignore support plugin (hsz.mobi)
+#built application files
+*.apk
+*.ap_
+
+# files for the dex VM
+*.dex
+
+# Java class files
+*.class
+
+# generated files
+bin/
+gen/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Windows thumbnail db
+Thumbs.db
+
+# OSX files
 .DS_Store
-.gitignore
-.google/
-.gradle/
-.idea/.name
-.idea/compiler.xml
-.idea/copyright/
-.idea/encodings.xml
-.idea/gradle.xml
-.idea/libraries/
-.idea/misc.xml
-.idea/modules.xml
-.idea/runConfigurations.xml
-.idea/workspace.xml
-Application/.DS_Store
-Application/Application.iml
-Application/build/generated/assets/
-Application/build/generated/res/
-Application/build/generated/source/aidl/
-Application/build/generated/source/r/androidTest/
-Application/build/generated/source/rs/
-Application/build/intermediates/assets/androidTest/
-Application/build/intermediates/blame/res/androidTest/
-Application/build/intermediates/dependency-cache/
-Application/build/intermediates/exploded-aar/com.android.support/cardview-v7/23.3.0/aidl/
-Application/build/intermediates/exploded-aar/com.android.support/cardview-v7/23.3.0/assets/
-Application/build/intermediates/exploded-aar/com.android.support/cardview-v7/23.3.0/jars/
-Application/build/intermediates/exploded-aar/com.android.support/cardview-v7/23.3.0/jni/
-Application/build/intermediates/exploded-aar/com.android.support/cardview-v7/23.3.0/libs/
-Application/build/intermediates/exploded-aar/com.android.support/support-v13/23.3.0/aidl/
-Application/build/intermediates/exploded-aar/com.android.support/support-v13/23.3.0/assets/
-Application/build/intermediates/exploded-aar/com.android.support/support-v13/23.3.0/jars/
-Application/build/intermediates/exploded-aar/com.android.support/support-v13/23.3.0/jni/
-Application/build/intermediates/exploded-aar/com.android.support/support-v13/23.3.0/libs/
-Application/build/intermediates/exploded-aar/com.android.support/support-v13/23.3.0/res/
-Application/build/intermediates/exploded-aar/com.android.support/support-v4/23.3.0/AndroidManifest.xml
-Application/build/intermediates/exploded-aar/com.android.support/support-v4/23.3.0/aidl/
-Application/build/intermediates/exploded-aar/com.android.support/support-v4/23.3.0/annotations.zip
-Application/build/intermediates/exploded-aar/com.android.support/support-v4/23.3.0/assets/
-Application/build/intermediates/exploded-aar/com.android.support/support-v4/23.3.0/jars/
-Application/build/intermediates/exploded-aar/com.android.support/support-v4/23.3.0/jni/
-Application/build/intermediates/exploded-aar/com.android.support/support-v4/23.3.0/libs/
-Application/build/intermediates/exploded-aar/com.android.support/support-v4/23.3.0/res/
-Application/build/intermediates/incremental-classes/
-Application/build/intermediates/incremental-runtime-classes/
-Application/build/intermediates/incremental-safeguard/
-Application/build/intermediates/incremental/
-Application/build/intermediates/instant-run-support/
-Application/build/intermediates/jniLibs/
-Application/build/intermediates/manifest/
-Application/build/intermediates/manifests/
-Application/build/intermediates/reload-dex/
-Application/build/intermediates/res/merged/androidTest/
-Application/build/intermediates/restart-dex/
-Application/build/intermediates/rs/
-Application/build/intermediates/shaders/
-Application/build/intermediates/symbols/androidTest/
-Application/build/intermediates/transforms/
-Application/build/outputs/
-Application/build/tmp/
-Application/src/.DS_Store
-Application/src/main/.DS_Store
-Application/src/main/assets/.DS_Store
-Application/src/main/assets/ffmpeg_bin/.DS_Store
-Application/src/main/java/.DS_Store
-Application/src/main/java/com/.DS_Store
-Application/src/main/java/com/example/.DS_Store
-Application/src/main/java/com/example/android/.DS_Store
-Application/src/main/jni/sdk/etc/
-Application/src/main/jni/sdk/java/.settings/
-Application/src/main/libs/
-Application/src/main/obj/
-Application/src/main/res/.DS_Store
-CONTRIB.md
-CONTRIBUTING.md
-android-MediaRecorder-master-1.iml
+
+# Eclipse project files
+.classpath
+.project
+
+# Android Studio
+*.iml
+.idea
+#.idea/workspace.xml - remove # and delete .idea if it better suit your needs.
+.gradle
 build/
-gradle/
-screenshots/
+
+#NDK
+obj/#built application files
+*.apk
+*.ap_
+
+# files for the dex VM
+*.dex
+
+# Java class files
+*.class
+
+# generated files
+bin/
+gen/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Windows thumbnail db
+Thumbs.db
+
+# OSX files
+.DS_Store
+
+# Eclipse project files
+.classpath
+.project
+
+# Android Studio
+*.iml
+.idea
+#.idea/workspace.xml - remove # and delete .idea if it better suit your needs.
+.gradle
+build/
+
+#NDK
+obj/
+
+
+# For older Android projects
+/*/out
+/*/*/build
+/*/*/production
+*.iws
+*.ipr
+*~
+*.swp
+
+
