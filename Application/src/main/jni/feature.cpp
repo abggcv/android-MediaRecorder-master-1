@@ -29,13 +29,14 @@ void Feature::provideFrame(Mat gray, double currTimeStamp)
     return;
 }
 
-void Feature::WriteToFile(std::string fileName, vector<Point> frameCountTimestamps)
+void Feature::WriteToFile(std::string fileName)
 {
     FileStorage fs;
-    fs.open(fileName,FileStorage::WRITE);
+    fs.open(fileName, FileStorage::WRITE);
     
     cv::Mat temp = cv::Mat::zeros(640,360, CV_8UC1);
-    
+
+    /*
     //fs << "temp" << temp;
     fs << "frameCountTimestamps" << "["; //frameCountTimestamps;
 
@@ -43,6 +44,7 @@ void Feature::WriteToFile(std::string fileName, vector<Point> frameCountTimestam
         fs << "{ frameCount: " << frameCountTimestamps[i].x << ", timestamps: " << frameCountTimestamps[i].y << "}";
 
     fs << "]";
-    
+    */
+
     fs.release();
 }

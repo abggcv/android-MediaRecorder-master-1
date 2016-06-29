@@ -356,7 +356,7 @@ public class MainActivity extends Activity {
     public native void callInit(int h, int w, float fps, float windowSizeInSec, String str);
 
     static {
-        System.loadLibrary("opencv_java");
+        System.loadLibrary("opencv_java3");
         System.loadLibrary("Scanner");
     }
 

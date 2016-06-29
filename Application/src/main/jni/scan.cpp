@@ -131,7 +131,7 @@ JNIEXPORT jobject JNICALL Java_com_example_android_mediarecorder_MainActivity_co
             const char * yamlfilenameptr = yamlFileName.c_str();
             LOGD("Writing to yamlfile: %s", yamlfilenameptr);
 
-            feat.WriteToFile(yamlFileName, framesTimestamps);
+            feat.WriteToFile(yamlFileName);
         }
         else
             LOGD("YAML Filename empty string");
@@ -185,10 +185,7 @@ JNIEXPORT jobject JNICALL Java_com_example_android_mediarecorder_MainActivity_ca
        const char *fnameptr = env->GetStringUTFChars(jFilePath, NULL);
 
        string fileName(fnameptr);
-
        yamlFileName = fileName;
-
        LOGI("yaml file name set to: %s", fnameptr);
-
 
 }

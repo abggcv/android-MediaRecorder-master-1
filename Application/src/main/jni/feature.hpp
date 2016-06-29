@@ -11,7 +11,7 @@ class Feature {
  public:
     void init(int height, int width, float fps, float windowSizeInSec);
     void provideFrame(Mat gray,double timeStamp);
-    void WriteToFile(std::string fileName, vector<Point> vec);
+    void WriteToFile(std::string fileName);
  private:
  
     int currFrameCount;
