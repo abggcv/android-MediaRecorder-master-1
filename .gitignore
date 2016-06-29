@@ -7,6 +7,8 @@ gradlew.bat
 # misc
 **/lint.xml
 **/import-summary.txt
+**/src/main/libs/*
+**/src/main/obj/*
 
 #built application files
 *.apk
@@ -44,7 +46,7 @@ Thumbs.db
 **/build/*
 
 #NDK
-**/obj/*            #built application files
+**/obj            #built application files
 *.apk
 *.ap_
 

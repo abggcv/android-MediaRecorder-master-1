@@ -58,7 +58,7 @@ public class MainActivity extends Activity {
     private boolean isRecording = false;
     private static final String TAG = "Recorder";
     private Button captureButton;
-    private int frameCount = 0;
+    private int mRecFrameCount = 0;
     private long timestamp0;
     private static float SEGMENTWINDOWSIZEINSEC = 4.0f;
     private static int mProcessingWidth = 1280;
@@ -119,7 +119,7 @@ public class MainActivity extends Activity {
         } else {
 
             // BEGIN_INCLUDE(prepare_start_media_recorder)
-
+            mRecFrameCount = 0;
             new MediaPrepareTask().execute(null, null, null);
 
             // END_INCLUDE(prepare_start_media_recorder)
@@ -247,7 +247,9 @@ public class MainActivity extends Activity {
         return true;
     }
 
+    static boolean readyForProc = true;
     TextureView.SurfaceTextureListener textureListener = new TextureView.SurfaceTextureListener() {
+
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
 
@@ -270,24 +272,35 @@ public class MainActivity extends Activity {
 
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+            if (isRecording) {
+                double timestampMS;
+                long timestampNS = surface.getTimestamp(); //in nanoseconds
+                mRecFrameCount++;
+                if (mRecFrameCount == 1)
+                {
+                    // NOTE: Strangely, the first call to surface.getTimestamp() always returns an old value
+                    // And then it suddently jumps to a higher value.
+                    // Maybe in cases when preview is already on, this behaviour would be different.
+                    return;
+                }
 
-            long timestampNS = surface.getTimestamp(); //in nanoseconds
+                if(mRecFrameCount == 2) {
+                    timestamp0 = timestampNS;
+                    timestampMS = 0;
+                }
+                else
+                    timestampMS = (double)(timestampNS-timestamp0)/1000000.0f; //in miliseconds
+                // Log.i(TAG, "timestamp in ms: " + timestampMS + ". ns= " + timestampNS);
 
-            double timestampMS;
+                if (readyForProc) {
+                    readyForProc = false;
+                    Bitmap bmp = mPreview.getBitmap(mProcessingWidth, mProcessingHeight);
 
-            if(frameCount == 0) {
-                timestamp0 = timestampNS;
-                timestampMS = 0;
+                    provideFrame(bmp, timestampMS);
+                    readyForProc = true;
+                }
+
             }
-            else
-                timestampMS = (double)(timestampNS-timestamp0)*10e-6; //in miliseconds
-
-            Log.i(TAG, "timestamp in ms: " + timestampMS);
-
-            Bitmap bmp = mPreview.getBitmap(mProcessingWidth, mProcessingHeight);
-
-            if (isRecording)
-                provideFrame(bmp, timestampMS);
 
         }
     };
