@@ -98,7 +98,9 @@ public class FFmpegAccessor {
 
     private FFmpegAccessor(Context context){
         this.context = context.getApplicationContext();
+        load();
     }
+
     public static FFmpegAccessor sharedInstance(Context context){
         if(_instance == null){
             _instance = new FFmpegAccessor(context);
@@ -106,7 +108,7 @@ public class FFmpegAccessor {
         return _instance;
     }
 
-    public int load(){
+    private int load(){
         if(Build.CPU_ABI.equals("x86")){
             mArchName = "x86";
         }
@@ -148,7 +150,6 @@ public class FFmpegAccessor {
                 ffmpegFile.setExecutable(true);
             }
         }
-
 
         if(ffmpegFile.exists() && ffmpegFile.canExecute()) return 0;
         return -1;

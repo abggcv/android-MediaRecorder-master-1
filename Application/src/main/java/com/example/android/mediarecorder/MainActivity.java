@@ -24,24 +24,23 @@ import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
-import android.opengl.GLES20;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 import com.example.android.common.media.CameraHelper;
 import com.example.android.common.media.KibaFileManager;
+import com.example.android.modules.ServerPostProc;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.HashMap;
 
 /**
  *  This activity uses the camera/camcorder as the A/V source for the {@link android.media.MediaRecorder} API.
@@ -73,6 +72,11 @@ public class MainActivity extends Activity {
         captureButton = (Button) findViewById(R.id.button_capture);
 
         mPreview.setSurfaceTextureListener(textureListener);
+
+        String arch = System.getProperty("os.arch");
+        Log.e(TAG, "MainActivity::onCreate::SystemArch = " + arch);
+
+
     }
 
     /**
@@ -100,6 +104,18 @@ public class MainActivity extends Activity {
             writeOutYAMLAndDeinit();
             releaseMediaRecorder(); // release the MediaRecorder object
             mCamera.lock();         // take camera access back from MediaRecorder
+
+            String vidFile = mOutputFiles[0].getAbsolutePath();
+            HashMap<String, String> addFilesList = new HashMap<String, String>();
+            addFilesList.put("yamlFilePath", mOutputFiles[1].getAbsolutePath());
+            // Send command for postProcessing this
+            new AsyncTask<Void, Void, Void>() {
+                protected Void doInBackground(Void... unused) {
+                    // Background Code
+                    ServerPostProc.getInstance().pushToServerVidWithAdditionalFiles(vidFile, addFilesList);
+                    return null;
+                }
+            }.execute();
 
             // inform the user that recording has stopped
             setCaptureButtonText("Capture");

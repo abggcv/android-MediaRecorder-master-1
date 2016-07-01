@@ -67,7 +67,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    */
+
 
     sourceSets {
         main {
@@ -80,6 +80,12 @@ android {
         androidTest.java.srcDirs = ['tests/src']
 
     }
+    */
+    sourceSets.main
+            {
+                jni.srcDirs = [] /// ndk-build needs to be invoked from command line
+                jniLibs.srcDir 'src/main/libs'
+            }
 
     buildTypes {
         release {
@@ -88,6 +94,7 @@ android {
         }
     }
 
+    /*
     task ndkBuild(type: Exec) {
         //commandLine 'C:\\Users\\abgg\\AppData\\Local\\Android\\sdk\\ndk-bundle\\ndk-build.cmd', '-C', file('src/main/jni').absolutePath
         commandLine '/opt/android/android-ndk-r12/ndk-build', '-C', file('src/main/jni').absolutePath
@@ -96,5 +103,6 @@ android {
     tasks.withType(JavaCompile) {
         compileTask -> compileTask.dependsOn ndkBuild
     }
+    */
 
 }

@@ -37,9 +37,9 @@ import java.util.List;
 
 
 public class CaptureListActivity extends ListActivity {
-    public static final String IDENTITY_POOL_ID = "us-east-1:****";
-    public static final String BUCKET_NAME = "****";
-    public static final String QUEUE_NAME = "****";
+    public static final String IDENTITY_POOL_ID = "us-east-1:b8cdf50d-9098-4969-b4e3-1a433a96f1a7";
+    public static final String BUCKET_NAME = "taigadev";
+    public static final String QUEUE_NAME = "android-trial";
 
     private List<String> mPaths;
     FFmpegAccessor mFFmpeg;
@@ -48,7 +48,6 @@ public class CaptureListActivity extends ListActivity {
     private AmazonS3 mS3Client;
     private TransferUtility mTransferUtility;
     private CognitoCachingCredentialsProvider mCredentials;
-
 
     public class SQSTask extends AsyncTask<Void, String, Integer>{
 
@@ -63,9 +62,17 @@ public class CaptureListActivity extends ListActivity {
         @Override
         protected Integer doInBackground(Void... params) {
             try {
+                Log.d("SQS", "Point 1");
                 CreateQueueRequest createQueueRequest = new CreateQueueRequest(QUEUE_NAME);
+                Log.d("SQS", "Point 2");
+                if (mClient == null)
+                {
+                    Log.d("SQS", "Point 2.5 (NULL)");
+                }
                 String myQueueUrl = mClient.createQueue(createQueueRequest).getQueueUrl();
+                Log.d("SQS", "Point 3");
                 mClient.sendMessage(new SendMessageRequest(myQueueUrl, mMessage));
+                Log.d("SQS", "Posted successfully");
                 return 0;
             }catch (Exception e){
                 Log.d("SQS", e.toString());
@@ -86,17 +93,55 @@ public class CaptureListActivity extends ListActivity {
 
         mCredentials = new CognitoCachingCredentialsProvider(
                 getApplicationContext(),
-                "us-east-1:70ad40aa-1bc4-4442-9a46-fbce2f2ec278", // Identity Pool ID
+                IDENTITY_POOL_ID, // Identity Pool ID
                 Regions.US_EAST_1 // Region
         );
 
         mS3Client = new AmazonS3Client(mCredentials);
+        if (mS3Client == null)
+        {
+            Log.e("SQS", "Empty mS3Client");
+        }
+        else
+        {
+            Log.d("SQS", "Non Empty mS3Client");
+        }
+
         mTransferUtility = new TransferUtility(mS3Client, getApplicationContext());
 
+        if (mTransferUtility == null)
+        {
+            Log.e("SQS", "Empty mTransferUtility");
+
+        }
+        else
+        {
+            Log.d("SQS", "Non Empty mTransferUtility");
+        }
+
+        File localFile1 = new File("/storage/emulated/0/Documents/Kiba/20160630_102713/VID_20160630_102713.mp4");
+        this.uploadFile(localFile1.getName(), localFile1);
+
+        File localFile2 = new File("/storage/emulated/0/Documents/Kiba/20160630_102733/VID_20160630_102733.mp4");
+        this.uploadFile(localFile2.getName(), localFile2);
+
         mSqsClient = new AmazonSQSClient(mCredentials);
+        // mSqsClient.setRegion();
+        mSqsClient.setEndpoint("https://sqs.us-west-1.amazonaws.com");
+
+        if (mSqsClient == null)
+        {
+            Log.e("SQS", "Empty mSqsClient");
+        }
+        else
+        {
+            Log.d("SQS", "Non Empty mSqsClient");
+        }
+
+        postSQS("Test Msg");
+
 
         mFFmpeg = FFmpegAccessor.sharedInstance(getApplicationContext());
-        mFFmpeg.load();
 
         mPaths = new ArrayList<String>();
         File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
@@ -106,6 +151,10 @@ public class CaptureListActivity extends ListActivity {
         for(File file : mediaStorageDir.listFiles()){
             mPaths.add(file.getAbsolutePath());
         }
+
+        this.extractAudio(localFile1.getAbsolutePath(), localFile1.getParent());
+
+        Log.e("SQS", "Audio extraction done");
 
         ListViewAdapter adapter = new ListViewAdapter(this, R.layout.list_items, mPaths);
         setListAdapter(adapter);
@@ -248,7 +297,7 @@ public class CaptureListActivity extends ListActivity {
 
     }
 
-    private void postSQS(String message){
+    public void postSQS(String message){
         SQSTask task = new SQSTask(mSqsClient, message);
         task.execute();
     }
@@ -271,7 +320,7 @@ public class CaptureListActivity extends ListActivity {
                         me.postSQS("Complete!");
                     }
                     Log.d("S3", "Complete");
-                    file.delete();
+                    // file.delete();
                 }
             }
 
@@ -286,7 +335,7 @@ public class CaptureListActivity extends ListActivity {
 
             @Override
             public void onError(int id, Exception ex) {
-                Log.e("S3", "ERROR");
+                Log.e("S3", "ERROR: " + ex);
             }
         });
     }
