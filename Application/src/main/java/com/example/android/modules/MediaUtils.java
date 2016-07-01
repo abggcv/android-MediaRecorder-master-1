@@ -42,7 +42,7 @@ public class MediaUtils {
 
     }
 
-    public static void splitVideo(final String videoPath, final String outputDirectory, List<Integer> splitInfo, OnTaskCompletedInterface listener, Object appData){
+    public static void splitVideo(final String videoPath, final String outputDirectory, List<Double> splitInfo, OnTaskCompletedInterface listener, Object appData, int outFileStartIndex){
         if(splitInfo.isEmpty()) {
             if (listener != null)
                 listener.onTaskCompleted(true, appData);
@@ -51,16 +51,16 @@ public class MediaUtils {
 
         File dir = new File(outputDirectory);
         dir.mkdirs();
-        File video = new File(videoPath);
+        // File video = new File(videoPath);
 
-        Integer startSec = splitInfo.get(0);
-        final String fileName =  video.getName() + "out_x"  + Integer.toString(startSec) + ".mp4";
+        Double startSec = splitInfo.get(0);
+        final String fileName =  "out_x"  + String.format("%04d", outFileStartIndex) + ".mp4";
         final String outputPath = outputDirectory+File.separator+fileName;
 
-        String command = "-ss " + Integer.toString(startSec) + " -t 20 " + "-i " + videoPath + " -c copy -y " + outputPath;
+        String command = "-ss " + Double.toString(startSec) + " -t 20 " + "-i " + videoPath + " -c copy -y " + outputPath;
         splitInfo.remove(0);
 
-        final List<Integer> nextSplit = splitInfo;
+        final List<Double> nextSplit = splitInfo;
         FFmpegAccessor.sharedInstance(KibaApp.get()).execute(command, new FFmpegAccessor.ResponseHandler() {
             @Override
             public void onStart() {
@@ -73,7 +73,8 @@ public class MediaUtils {
                     File incomplete = new File(outputPath);
                     incomplete.delete();
                 }
-                MediaUtils.splitVideo(videoPath, outputDirectory, nextSplit, listener, appData);
+                int newFileStartIndex = outFileStartIndex + 1;
+                MediaUtils.splitVideo(videoPath, outputDirectory, nextSplit, listener, appData, newFileStartIndex);
 
             }
 

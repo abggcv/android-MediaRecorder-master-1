@@ -35,7 +35,7 @@ import android.widget.Button;
 
 import com.example.android.common.media.CameraHelper;
 import com.example.android.common.media.KibaFileManager;
-import com.example.android.modules.ServerPostProc;
+import com.example.android.modules.ServerCloudProcess;
 
 import java.io.File;
 import java.io.IOException;
@@ -112,7 +112,7 @@ public class MainActivity extends Activity {
             new AsyncTask<Void, Void, Void>() {
                 protected Void doInBackground(Void... unused) {
                     // Background Code
-                    ServerPostProc.getInstance().pushToServerVidWithAdditionalFiles(vidFile, addFilesList);
+                    ServerCloudProcess.getInstance().pushToServerVidWithAdditionalFiles(vidFile, addFilesList);
                     return null;
                 }
             }.execute();

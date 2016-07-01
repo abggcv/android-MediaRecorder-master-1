@@ -73,6 +73,12 @@ public class KibaFileManager {
         return uuid;
     }
 
+    public static String deviceSQSQueueName()
+    {
+        String sqsQueueName = "queueRespANDR-" + KibaFileManager.getUniqueDeviceID();
+        return sqsQueueName;
+    }
+
     public static String getUniqueDeviceID() {
 
         if (deviceUniqueID != null)

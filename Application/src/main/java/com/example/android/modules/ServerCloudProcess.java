@@ -17,20 +17,20 @@ import org.json.JSONStringer;
 
 
 // Note this is a singleton class
-public class ServerPostProc implements OnTaskCompletedInterface{
+public class ServerCloudProcess implements OnTaskCompletedInterface{
 
-    private static final String SQS_COMMAND_NAME = "DUMMY_FEAT_CALL";   // PROCESS_FEATURES
-    private static final String TAG = "ServerPostProc";
-    private static ServerPostProc singleton = new ServerPostProc();
+    // private static final String SQS_COMMAND_NAME = "DUMMY_FEAT_CALL";   // PROCESS_FEATURES
+    private static final String SQS_COMMAND_NAME = "PROCESS_FEATURES";   //
+    private static final String TAG = "ServerCloudProcess";
+    private static ServerCloudProcess singleton = new ServerCloudProcess();
     private LinkedHashMap<String, PostProcEntry> postProcEntries = new LinkedHashMap<>();
-    private static String uniqueDeviceId = KibaFileManager.getUniqueDeviceID();
 
     /* A private Constructor prevents any other
     * class from instantiating.
     */
-    private ServerPostProc()
+    private ServerCloudProcess()
     {
-        Thread t = new Thread(new PostProcessingLoop(this));
+        Thread t = new Thread(new MainProcessingLoop(this));
         t.start();
     }
 
@@ -47,22 +47,24 @@ public class ServerPostProc implements OnTaskCompletedInterface{
         return;
     }
 
-    public static ServerPostProc getInstance() {
+    public static ServerCloudProcess getInstance() {
         if(singleton == null) {
-            singleton = new ServerPostProc();
+            singleton = new ServerCloudProcess();
         }
         return singleton;
     }
 
-    private class PostProcessingLoop implements Runnable {
-        ServerPostProc context;
-        public PostProcessingLoop(ServerPostProc context){
+    private class MainProcessingLoop implements Runnable {
+        ServerCloudProcess context;
+        public MainProcessingLoop(ServerCloudProcess context){
             this.context = context;
         }
 
         public void run() {
             try {
                 while (true) {
+                    Log.d(TAG, "MainProcessingLoop++");
+                    AWSHandler.getInstance().ReceiveSQSMsg(KibaFileManager.deviceSQSQueueName());
                     for (Map.Entry<String, PostProcEntry> entry : postProcEntries.entrySet()) {
                         String key = entry.getKey();
                         PostProcEntry postProcEntry = entry.getValue();
@@ -70,7 +72,7 @@ public class ServerPostProc implements OnTaskCompletedInterface{
                         //
                         if (postProcEntry.dirtyBit)
                         {
-                            Log.d(TAG, "PostProcessingLoop:: To Process Entry : " + postProcEntry);
+                            Log.d(TAG, "MainProcessingLoop:: To Process Entry : " + postProcEntry);
                             if (postProcEntry.stageProcessing == 0)
                             {
                                 // Create audio clip
@@ -130,7 +132,7 @@ public class ServerPostProc implements OnTaskCompletedInterface{
                     Thread.sleep(5000);
                 }
             } catch (InterruptedException e) {
-                Log.e(TAG, "PostProcessingLoop:: Post-proc thread interuppted. Exiting.");
+                Log.e(TAG, "MainProcessingLoop:: Post-proc thread interuppted. Exiting.");
             }
         }
     }
@@ -157,7 +159,7 @@ public class ServerPostProc implements OnTaskCompletedInterface{
             awsMsgParams.put("s3RelLocFeatFile", postProcEntry.awsKeyYamlFile);
             awsMsgParams.put("s3RelLocAudFile", postProcEntry.awsKeyAudFile);
             awsMsgParams.put("userEmail", "default");
-            awsMsgParams.put("sqsResponseQueue", deviceSQSQueueName());
+            awsMsgParams.put("sqsResponseQueue", KibaFileManager.deviceSQSQueueName());
             awsMsgParams.put("appData", awsAppData);
             awsMsgParams.put("userIdentity", "default");
             awsMsgParams.put("boolUseFolder", true);
@@ -174,16 +176,10 @@ public class ServerPostProc implements OnTaskCompletedInterface{
 
             sqsMsgStr = sqsMsg.toString();
         } catch (Exception e) {
-            Log.e(TAG, "PostProcessingLoop:: Post-proc thread interuppted. Exiting.");
+            Log.e(TAG, "MainProcessingLoop:: Post-proc thread interuppted. Exiting.");
         }
 
         return sqsMsgStr;
-    }
-
-    private String deviceSQSQueueName()
-    {
-        String sqsQueueName = "queueRespANDR-" + KibaFileManager.getUniqueDeviceID();
-        return sqsQueueName;
     }
 
     public void pushToServerVidWithAdditionalFiles(String vidFilePath, HashMap<String, String> additionalFiles)

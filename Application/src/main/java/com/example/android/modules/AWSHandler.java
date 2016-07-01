@@ -3,6 +3,8 @@ package com.example.android.modules;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
@@ -14,10 +16,20 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.CreateQueueRequest;
+import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
+import com.amazonaws.services.sqs.model.ReceiveMessageResult;
+import com.amazonaws.services.sqs.model.DeleteMessageRequest;
+import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.example.android.mediarecorder.KibaApp;
+import java.util.Map;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.File;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Created by vishal on 30/6/16.
@@ -52,7 +64,7 @@ public class AWSHandler {
     }
 
     public void postSQS(String message, OnTaskCompletedInterface listener, Object appData){
-        SQSTask task = new SQSTask(mSqsClient, message, listener, appData);
+        SQSSendTask task = new SQSSendTask(mSqsClient, message, listener, appData);
         task.execute();
     }
 
@@ -122,14 +134,14 @@ public class AWSHandler {
         }
     }
 
-    public class SQSTask extends AsyncTask<Void, String, Boolean> {
+    public class SQSSendTask extends AsyncTask<Void, String, Boolean> {
 
         private AmazonSQS mClient;
         private String mMessage;
         private OnTaskCompletedInterface listener;
         private Object appData;
 
-        SQSTask(AmazonSQS client, String message, OnTaskCompletedInterface listener, Object appData){
+        SQSSendTask(AmazonSQS client, String message, OnTaskCompletedInterface listener, Object appData){
             mClient = client;
             mMessage = message;
             this.listener = listener;
@@ -155,6 +167,90 @@ public class AWSHandler {
             super.onPostExecute(success);
             listener.onTaskCompleted(success, appData);
         }
+    }
+
+    public Message ReceiveSQSMsg(String sqsQueueName){
+
+        Message msgToProcess = null;
+        try {
+            if (!mIsInit)
+                initConnection();
+
+            if (mIsInit)
+            {
+                AmazonSQS client = mSqsClient;
+                CreateQueueRequest createQueueRequest = new CreateQueueRequest(sqsQueueName);
+                String myQueueUrl = client.createQueue(createQueueRequest).getQueueUrl();
+                List<Message> messages = client.receiveMessage(new ReceiveMessageRequest(myQueueUrl)).getMessages();
+                // Luckily aws defaults to reading one message at a time
+
+                if (messages.size() > 0) {
+                    msgToProcess = messages.get(0);
+                    /*
+                    Log.e(TAG,"  Message");
+                    Log.e(TAG,"    MessageId:     " + msgToProcess.getMessageId());
+                    Log.e(TAG,"    ReceiptHandle: " + msgToProcess.getReceiptHandle());
+                    Log.e(TAG,"    MD5OfBody:     " + msgToProcess.getMD5OfBody());
+                    Log.e(TAG,"    Body:          " + msgToProcess.getBody());
+                    for (Map.Entry<String, String> entry : msgToProcess.getAttributes().entrySet()) {
+                        Log.e(TAG,"  Attribute");
+                        Log.e(TAG,"    Name:  " + entry.getKey());
+                        Log.e(TAG,"    Value: " + entry.getValue());
+                    }
+                    */
+                    Log.d(TAG, "ReceiveSQSMsg::Retrieved new message from SQS");
+                }
+
+            }
+        }
+        catch (AmazonServiceException ase)
+        {
+            Log.e(TAG, "ReceiveSQSMsg::Caught an AmazonServiceException, which means your request made it " +
+                    "to Amazon SQS, but was rejected with an error response for some reason.");
+            Log.e(TAG, "ReceiveSQSMsg::Error Message: " + ase.getMessage());
+
+        } catch (AmazonClientException ace) {
+            Log.e(TAG, "ReceiveSQSMsg::Caught an AmazonClientException, which means the client encountered " +
+                    "a serious internal problem while trying to communicate with SQS, such as not " +
+                    "being able to access the network.");
+            Log.e(TAG, "ReceiveSQSMsg::Error Message: " + ace.getMessage());
+        }
+
+        return msgToProcess;
+    }
+
+    public void DeleteSQSMsg(String sqsQueueName, Message msgToDelete){
+
+        try {
+            if (!mIsInit)
+                initConnection();
+
+            if (mIsInit)
+            {
+                AmazonSQS client = mSqsClient;
+                CreateQueueRequest createQueueRequest = new CreateQueueRequest(sqsQueueName);
+                String myQueueUrl = client.createQueue(createQueueRequest).getQueueUrl();
+
+
+                String messageReceiptHandle = msgToDelete.getReceiptHandle();
+                mSqsClient.deleteMessage(new DeleteMessageRequest(myQueueUrl, messageReceiptHandle));
+                Log.d(TAG, "DeleteSQSMsg::Successfully deleted a message.\n");
+            }
+        }
+        catch (AmazonServiceException ase)
+        {
+            Log.e(TAG, "DeleteSQSMsg::Caught an AmazonServiceException, which means your request made it " +
+                    "to Amazon SQS, but was rejected with an error response for some reason.");
+            Log.e(TAG, "DeleteSQSMsg::Error Message: " + ase.getMessage());
+
+        } catch (AmazonClientException ace) {
+            Log.e(TAG, "Caught an AmazonClientException, which means the client encountered " +
+                    "a serious internal problem while trying to communicate with SQS, such as not " +
+                    "being able to access the network.");
+            Log.e(TAG, "DeleteSQSMsg::Error Message: " + ace.getMessage());
+        }
+
+        return;
     }
 
 }

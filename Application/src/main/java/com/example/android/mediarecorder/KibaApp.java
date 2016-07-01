@@ -2,7 +2,8 @@ package com.example.android.mediarecorder;
 
 import android.app.Application;
 
-import com.example.android.modules.ServerPostProc;
+import com.example.android.modules.ServerCloudListener;
+import com.example.android.modules.ServerCloudProcess;
 
 /**
  * Created by vishal on 30/6/16.
@@ -17,7 +18,8 @@ public class KibaApp extends Application {
         instance = this;
 
         // Initialize the PostProc engine
-        ServerPostProc.getInstance();
+        ServerCloudProcess.getInstance();
+        ServerCloudListener.getInstance();
     }
 
 }
