@@ -19,8 +19,7 @@ import org.json.JSONStringer;
 // Note this is a singleton class
 public class ServerCloudProcess implements OnTaskCompletedInterface{
 
-    // private static final String SQS_COMMAND_NAME = "DUMMY_FEAT_CALL";   // PROCESS_FEATURES
-    private static final String SQS_COMMAND_NAME = "PROCESS_FEATURES";   //
+    private static final String SQS_COMMAND_NAME = "DUMMY_FEAT_CALL";
     private static final String TAG = "ServerCloudProcess";
     private static ServerCloudProcess singleton = new ServerCloudProcess();
     private LinkedHashMap<String, PostProcEntry> postProcEntries = new LinkedHashMap<>();
