@@ -22,6 +22,8 @@ import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.example.android.mediarecorder.KibaApp;
+
+import java.util.HashMap;
 import java.util.Map;
 
 import org.json.JSONArray;
@@ -152,6 +154,9 @@ public class AWSHandler {
         protected Boolean doInBackground(Void... params) {
             try {
                 CreateQueueRequest createQueueRequest = new CreateQueueRequest(SQS_QUEUE_NAME);
+                Map<String, String> queueAttrs = new HashMap<>();
+                queueAttrs.put("VisibilityTimeout", "120");
+                createQueueRequest.setAttributes(queueAttrs);
                 String myQueueUrl = mClient.createQueue(createQueueRequest).getQueueUrl();
                 mClient.sendMessage(new SendMessageRequest(myQueueUrl, mMessage));
                 Log.d(TAG, "Posted successfully");
@@ -180,8 +185,14 @@ public class AWSHandler {
             {
                 AmazonSQS client = mSqsClient;
                 CreateQueueRequest createQueueRequest = new CreateQueueRequest(sqsQueueName);
+                Map<String, String> queueAttrs = new HashMap<>();
+                queueAttrs.put("VisibilityTimeout", "120");
+                createQueueRequest.setAttributes(queueAttrs);
                 String myQueueUrl = client.createQueue(createQueueRequest).getQueueUrl();
-                List<Message> messages = client.receiveMessage(new ReceiveMessageRequest(myQueueUrl)).getMessages();
+                ReceiveMessageRequest receiveMsgReq = new ReceiveMessageRequest(myQueueUrl);
+                receiveMsgReq.setMaxNumberOfMessages(1);
+                receiveMsgReq.setVisibilityTimeout(120);
+                List<Message> messages = client.receiveMessage(receiveMsgReq).getMessages();
                 // Luckily aws defaults to reading one message at a time
 
                 if (messages.size() > 0) {
@@ -229,6 +240,9 @@ public class AWSHandler {
             {
                 AmazonSQS client = mSqsClient;
                 CreateQueueRequest createQueueRequest = new CreateQueueRequest(sqsQueueName);
+                Map<String, String> queueAttrs = new HashMap<>();
+                queueAttrs.put("VisibilityTimeout", "120");
+                createQueueRequest.setAttributes(queueAttrs);
                 String myQueueUrl = client.createQueue(createQueueRequest).getQueueUrl();
 
 
