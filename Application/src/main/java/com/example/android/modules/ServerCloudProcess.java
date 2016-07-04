@@ -63,7 +63,7 @@ public class ServerCloudProcess implements OnTaskCompletedInterface{
             try {
                 while (true) {
                     Log.d(TAG, "MainProcessingLoop++");
-                    AWSHandler.getInstance().ReceiveSQSMsg(KibaFileManager.deviceSQSQueueName());
+                    // AWSHandler.getInstance().ReceiveSQSMsg(KibaFileManager.deviceSQSQueueName());
                     for (Map.Entry<String, PostProcEntry> entry : postProcEntries.entrySet()) {
                         String key = entry.getKey();
                         PostProcEntry postProcEntry = entry.getValue();
